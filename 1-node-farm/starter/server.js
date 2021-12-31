@@ -1,17 +1,22 @@
 const http = require("http");
 const url = require("url");
 const fs = require("fs");
-
-const strData = fs.readFileSync(`${__dirname}/dev-data/data.json`, "utf-8");
-const objData = JSON.parse(strData);
+const {
+  arrProductsData,
+  parseTemplate,
+  parseTemplateOverview,
+  strProductsData,
+  strTemplateProduct,
+} = require("./readTemplates");
 
 const PORT = process.env.PORT || 8000;
 const server = http.createServer();
 
 server.on("request", (req, res) => {
-  const pathName = req.url;
+  const { pathname, query } = url.parse(req.url, true);
 
-  switch (pathName) {
+  switch (pathname) {
+    // Overview Page:
     case "/":
     case "/overview":
       res
@@ -19,33 +24,40 @@ server.on("request", (req, res) => {
           "Content-type": "text/html",
           "my-own-header": "hello world",
         })
-        .write("<h1>Overview page</h1>");
+        .write(parseTemplateOverview());
       res.end();
       break;
 
+    // Product Page:
     case "/product":
+      const intId = parseInt(query.id, 10);
+
       res
         .writeHead(200, "OK", {
           "Content-type": "text/html",
         })
-        .write("<h1>Product page</h1>");
+        .write(parseTemplate(strTemplateProduct, arrProductsData[intId]));
+      res.end();
       break;
 
+    // API
     case "/api":
       res
         .writeHead(200, "OK", {
           "Content-type": "application/json",
         })
-        .write(strData);
+        .write(strProductsData);
       res.end();
       break;
 
+    // Not found:
     default:
       res
         .writeHead(404, "Not Found", {
           "Content-type": "text/html",
         })
         .write("<h1>Page not found</h1>");
+      res.end();
       break;
   }
 });
