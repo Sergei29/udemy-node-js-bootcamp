@@ -12,13 +12,14 @@ const app = express();
  * - `express.json()` - parses the request's body json->data, if that comes as JSON Data-Type.
  * - morgan - logger middleware
  */
-const middlewares = [
-  express.json(),
-  morgan('dev'),
-  timeMiddleware,
-  helloMiddleware,
-];
+const middlewares =
+  process.env.NODE_ENV === 'development'
+    ? [express.json(), morgan('dev'), timeMiddleware, helloMiddleware]
+    : [express.json()];
+
 app.use(...middlewares);
+
+app.use(express.static(`${__dirname}/public`));
 
 app.use(ROUTES.TOURS, toursRouter);
 app.use(ROUTES.USERS, usersRouter);
